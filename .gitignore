@@ -1,0 +1,10 @@
+.idea
+.code
+target
+build
+bin
+*.iml
+*.swp
+.settings/
+.classpath
+.project
