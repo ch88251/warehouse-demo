@@ -2,8 +2,7 @@ package com.tsi.warehouse;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class WarehouseTest {
 
@@ -13,6 +12,8 @@ public class WarehouseTest {
         assertDoesNotThrow(() -> {
             Warehouse warehouse = new Warehouse();
             assertNotNull(warehouse);
+            assertNotNull(warehouse.getProducts());
+            assertFalse(warehouse.getProducts().isEmpty());
         });
     }
 }
