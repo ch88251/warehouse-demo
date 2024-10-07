@@ -16,4 +16,5 @@ public class WarehouseTest {
             assertFalse(warehouse.getProducts().isEmpty());
         });
     }
+
 }

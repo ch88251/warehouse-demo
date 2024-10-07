@@ -1,6 +1,5 @@
 package com.tsi.util;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,7 +8,7 @@ import java.util.Scanner;
 
 public final class CsvReader {
 
-    private static final String DEFAULT_SEPARATOR = ",";
+    private static final String DEFAULT_SEPARATOR = "\\|";
     private final Scanner scanner;
     private final String separator;
 
