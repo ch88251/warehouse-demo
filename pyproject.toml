@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-warehouse-demo = "warehouse_demo:main"
+warehouse-demo = "warehouse_demo.main:main"
 
 [project.optional-dependencies]
 test = [

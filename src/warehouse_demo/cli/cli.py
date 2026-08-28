@@ -55,6 +55,20 @@ class Cli:
   def run(self):
     while True:
       self.display_main_menu()
+      try:
+        choice: int = self.choose_main_menu_option()
+        if choice == -1:
+          break
+        while True:
+            self.display_sub_menu(choice)
+            try:
+              sub_choice: int = self.choose_sub_menu_option(choice)
+              if sub_choice == -1:
+                break
+            except Exception as exc:  # noqa: BLE001
+              self.out.write(f"An unexpected error occurred: {exc}\n")
+      except Exception as exc:  # noqa: BLE001
+        self.out.write(f"An unexpected error occurred: {exc}\n")
 
   def display_main_menu(self):
     self.display_menu(self.main_menu_options, "Main Menu")
@@ -81,3 +95,8 @@ class Cli:
 
     self.out.write("Error: Please enter a valid option\n")
     return 0
+
+  def display_sub_menu(self, choice: int):
+      options = self.SUB_MENU_OPTIONS.get(choice, [])
+      if options:
+          self.display_menu(options, "Sub Menu")
