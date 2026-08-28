@@ -24,8 +24,8 @@ class Cli:
       MenuOption(1, "Manage Products"),
       MenuOption(2, "Manage Customers"),
       MenuOption(3, "Manage Orders"),
-      MenuOption(5, "Export Reports"),
-      MenuOption(4, "Exit")
+      MenuOption(4, "Export Reports"),
+      MenuOption(5, "Exit Program")
     ]
 
     self.product_options: list[MenuOption] = [
@@ -57,12 +57,16 @@ class Cli:
       self.display_main_menu()
       try:
         choice: int = self.choose_main_menu_option()
-        if choice == -1:
+        if choice == 5:
           break
+
+        if choice == 0:
+          continue
+
         while True:
             self.display_sub_menu(choice)
             try:
-              sub_choice: int = self.choose_sub_menu_option(choice)
+              sub_choice: int = self.choose_sub_menu_option()
               if sub_choice == -1:
                 break
             except Exception as exc:  # noqa: BLE001
@@ -90,7 +94,8 @@ class Cli:
       self.out.write("Error: Please enter a valid number\n")
       return 0
 
-    if 1 <= value <= len(self.main_menu_options):
+    valid_options = {option.number for option in self.main_menu_options}
+    if value in valid_options:
       return value
 
     self.out.write("Error: Please enter a valid option\n")
@@ -100,3 +105,12 @@ class Cli:
       options = self.SUB_MENU_OPTIONS.get(choice, [])
       if options:
           self.display_menu(options, "Sub Menu")
+
+  def choose_sub_menu_option(self) -> int:
+    try:
+      line = self.in_stream.readline().strip()
+      value = int(line)
+      return value
+    except Exception as e:  # noqa: BLE001
+      self.out.write(f"An unexpected error occurred: {e}\n")
+    return 0
