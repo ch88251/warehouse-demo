@@ -207,6 +207,11 @@ test = [
     { name = "tox" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
@@ -214,3 +219,6 @@ requires-dist = [
     { name = "tox", marker = "extra == 'test'", specifier = ">=4.0" },
 ]
 provides-extras = ["test"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.1" }]
