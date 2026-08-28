@@ -1,31 +1,27 @@
-image: python:latest
+image: ghcr.io/astral-sh/uv:python3.13-bookworm
 
 variables:
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
 
 cache:
   paths:
-    - .cache/pip
+    - .cache/uv
 
 before_script:
-  - python --version ; pip --version  # For debugging
-  - pip install virtualenv
-  - virtualenv venv
-  - source venv/bin/activate
+  - python --version
+  - uv --version
 
 test:
   script:
-    - pip install ruff tox  # you can also use tox
-    - pip install --editable ".[test]"
-    - tox -e py,ruff
+    - uv sync --extra test
+    - uv run tox -e py,ruff
 
 run:
   script:
-    - pip install .
-    # run the command here
+    - uv build
   artifacts:
     paths:
-      - build/*
+      - dist/*
 
 deploy:
   stage: deploy
