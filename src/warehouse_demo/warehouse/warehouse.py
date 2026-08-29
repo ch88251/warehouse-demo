@@ -1,5 +1,9 @@
 
+import csv
 from typing import final
+
+from .csv_reader import CsvReader
+from .product import Product
 
 
 @final
@@ -32,11 +36,33 @@ class Warehouse:
     def orders(self):
         return self._orders
 
+    def get_products(self) -> list[Product]:
+        if not self._products:
+            self.read_products()
+
+        return [
+            Product(
+                product_id=product_id,
+                name=product_data["name"],
+                price=product_data["price"],
+            )
+            for product_id, product_data in self._products.items()
+        ]
+
     def read_products(self):
         self._products = {}
         with open(self.products_csv_file, "r") as f:
-            for line in f:
-                product_id, name, price = line.strip().split(",")
+            sample = f.read(1024)
+            f.seek(0)
+            dialect = csv.Sniffer().sniff(sample, delimiters=",|")
+            reader = CsvReader(f, separator=dialect.delimiter)
+
+            while reader.has_next_row():
+                row = reader.next_row()
+                if not row:
+                    continue
+
+                product_id, name, price = row
                 self._products[product_id] = {"name": name, "price": float(price)}
 
     def read_inventory(self):
