@@ -1,48 +1,43 @@
+import csv
 from io import TextIOBase
 from typing import final
 
 
 @final
 class CsvReader:
-    DEFAULT_SEPARATOR = ","
-
     def __init__(
         self,
         input_stream: TextIOBase,
-        separator: str = DEFAULT_SEPARATOR,
+        separator: str = ",",
     ) -> None:
-        self._input_stream = input_stream
-        self._separator = separator
-        self._next_line: str | None = None
+        self._reader = csv.reader(input_stream, delimiter=separator)
+        self._rows = iter(self._reader)
+        self._next_row: list[str] | None = None
         self._end_of_file = False
 
     def has_next_row(self) -> bool:
-        if self._next_line is not None:
+        if self._next_row is not None:
             return True
 
         if self._end_of_file:
             return False
 
-        line = self._input_stream.readline()
-
-        if line == "":
+        try:
+            self._next_row = next(self._rows)
+            return True
+        except StopIteration:
             self._end_of_file = True
             return False
-
-        self._next_line = line
-        return True
 
     def next_row(self) -> list[str]:
         if not self.has_next_row():
             raise StopIteration("No more CSV rows")
 
-        line = self._next_line
-        self._next_line = None
+        row = self._next_row
+        self._next_row = None
 
-        # Remove the newline without removing other whitespace.
-        line = line.rstrip("\r\n")
-
-        if not line.strip():
+        # Preserve historical behavior: whitespace-only lines are treated as empty rows.
+        if row is not None and len(row) == 1 and row[0].strip() == "":
             return []
 
-        return line.split(self._separator)
+        return row
