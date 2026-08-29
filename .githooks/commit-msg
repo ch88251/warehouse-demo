@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+commit_msg_file="$1"
+commit_msg="$(head -n 1 "$commit_msg_file")"
+
+# Allow merge/revert commits created by Git.
+case "$commit_msg" in
+  Merge\ *|Revert\ *)
+    exit 0
+    ;;
+esac
+
+pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?: .+'
+
+if printf '%s' "$commit_msg" | grep -Eq "$pattern"; then
+  exit 0
+fi
+
+echo "Invalid commit message prefix."
+echo "Expected format: <type>(optional-scope): <subject>"
+echo "Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore"
+echo "Example: feat(cli): add warehouse menu navigation"
+exit 1
