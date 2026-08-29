@@ -9,6 +9,10 @@ class Product:
     name: str
     price: float
 
+    @property
+    def id(self) -> str:
+        return self.product_id
+
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Product):
             return NotImplemented
