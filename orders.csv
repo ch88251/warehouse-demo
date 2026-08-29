@@ -1,0 +1,11 @@
+id|customer_id|date|product|quantity|pending
+1|1|2024-06-01|Milk|2|true
+2|2|2024-06-02|Bread|1|true
+3|3|2024-06-03|Eggs|12|true
+4|4|2024-06-04|Bananas|6|true
+5|5|2024-06-05|Apples|4|true
+6|6|2024-06-06|Chicken Breast|3|true
+7|7|2024-06-07|Ground Beef|2|true
+8|8|2024-06-08|Rice|5|true
+9|9|2024-06-09|Pasta|3|true
+10|10|2024-06-10|Cheddar Cheese|1|true
