@@ -17,6 +17,34 @@ def test_read_products(tmp_path, csv_content, expected):
     warehouse.read_products()
     assert warehouse.products == expected
 
+
+def test_get_products_reads_products_csv_and_returns_product_models(tmp_path):
+    csv_file = tmp_path / "products.csv"
+    csv_file.write_text("1,Product A,10.0\n2,Product B,20.0\n")
+    warehouse = Warehouse()
+    warehouse.products_csv_file = str(csv_file)
+
+    products = warehouse.get_products()
+
+    assert [(product.id, product.name, product.price) for product in products] == [
+        ("1", "Product A", 10.0),
+        ("2", "Product B", 20.0),
+    ]
+
+
+def test_get_products_supports_pipe_delimited_products_csv(tmp_path):
+    csv_file = tmp_path / "products.csv"
+    csv_file.write_text("1|Milk|3.49\n2|Bread|2.79\n")
+    warehouse = Warehouse()
+    warehouse.products_csv_file = str(csv_file)
+
+    products = warehouse.get_products()
+
+    assert [(product.id, product.name, product.price) for product in products] == [
+        ("1", "Milk", 3.49),
+        ("2", "Bread", 2.79),
+    ]
+
 @pytest.mark.parametrize("csv_content,expected", [
     ("1,100\n2,200\n", {"1": 100, "2": 200})
 ])
