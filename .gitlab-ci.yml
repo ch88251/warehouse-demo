@@ -1,5 +1,10 @@
 image: ghcr.io/astral-sh/uv:python3.13-bookworm
 
+stages:
+  - code quality
+  - test
+  - deploy
+
 variables:
   UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
 
@@ -11,10 +16,17 @@ before_script:
   - python --version
   - uv --version
 
+code_quality:
+  stage: code quality
+  script:
+    - uv sync
+    - uv run ruff check .
+
 test:
+  stage: test
   script:
     - uv sync --extra test
-    - uv run tox -e py,ruff
+    - uv run pytest -q
 
 run:
   script:
