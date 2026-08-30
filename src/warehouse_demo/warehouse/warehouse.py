@@ -1,9 +1,11 @@
 
 import csv
+from pathlib import Path
 from typing import final
 
 from .csv_reader import CsvReader
 from .product import Product
+from .warehouse_exception import WarehouseException
 
 
 @final
@@ -54,8 +56,56 @@ class Warehouse:
             self.read_inventory()
         return self._inventory
 
+    def add_product(
+        self,
+        name: str,
+        price: float,
+    ) -> Product:
+        name = name.strip()
+
+        if not name:
+            raise WarehouseException("Product name cannot be empty.")
+
+        if not self._products and Path(self.products_csv_file).exists():
+            self.read_products()
+
+        product_id = str(self._get_next_product_id())
+
+        delimiter = self._get_csv_delimiter(self.products_csv_file)
+        self._ensure_trailing_newline(self.products_csv_file)
+
+        with open(self.products_csv_file, "a", newline="") as output_stream:
+            writer = csv.writer(
+                output_stream,
+                delimiter=delimiter,
+                lineterminator="\n",
+            )
+            writer.writerow([product_id, name, price])
+
+        self._products[product_id] = {
+            "name": name,
+            "price": price,
+        }
+
+        return Product(
+            product_id=product_id,
+            name=name,
+            price=price,
+        )
+
+    def _get_next_product_id(self) -> int:
+        numeric_ids = [int(product_id) for product_id in self._products]
+        return max(numeric_ids, default=0) + 1
+
     @staticmethod
     def _create_csv_reader(input_stream) -> CsvReader:
+        return CsvReader(
+            input_stream,
+            separator=Warehouse._detect_csv_delimiter(input_stream),
+        )
+
+    @staticmethod
+    def _detect_csv_delimiter(input_stream) -> str:
         sample = input_stream.read(1024)
         input_stream.seek(0)
 
@@ -69,7 +119,26 @@ class Warehouse:
             except csv.Error:
                 pass
 
-        return CsvReader(input_stream, separator=delimiter)
+        return delimiter
+
+    def _get_csv_delimiter(self, file_path: str) -> str:
+        path = Path(file_path)
+        if not path.exists() or path.stat().st_size == 0:
+            return ","
+
+        with path.open("r") as input_stream:
+            return self._detect_csv_delimiter(input_stream)
+
+    @staticmethod
+    def _ensure_trailing_newline(file_path: str) -> None:
+        path = Path(file_path)
+        if not path.exists() or path.stat().st_size == 0:
+            return
+
+        with path.open("rb+") as output_stream:
+            output_stream.seek(-1, 2)
+            if output_stream.read(1) != b"\n":
+                output_stream.write(b"\n")
 
     def read_products(self):
         self._products = {}
@@ -94,6 +163,9 @@ class Warehouse:
                 if not row:
                     continue
 
+                if row == ["product", "quantity"]:
+                    continue
+
                 product_id, quantity = row
                 self._inventory[product_id] = int(quantity)
 
@@ -107,7 +179,12 @@ class Warehouse:
                 if not row:
                     continue
 
-                customer_id, name, email = row
+                if len(row) == 2:
+                    customer_id, name = row
+                    email = ""
+                else:
+                    customer_id, name, email = row
+
                 self._customers[customer_id] = {"name": name, "email": email}
 
     def read_orders(self):
@@ -120,12 +197,27 @@ class Warehouse:
                 if not row:
                     continue
 
-                order_id, customer_id, product_id, quantity = row
-                self._orders[order_id] = {
-                    "customer_id": customer_id,
-                    "product_id": product_id,
-                    "quantity": int(quantity)
-                }
+                if row == ["id", "customer_id", "date", "product", "quantity", "pending"]:
+                    continue
+
+                if len(row) == 4:
+                    order_id, customer_id, product_id, quantity = row
+                    order_data = {
+                        "customer_id": customer_id,
+                        "product_id": product_id,
+                        "quantity": int(quantity),
+                    }
+                else:
+                    order_id, customer_id, date, product_name, quantity, pending = row
+                    order_data = {
+                        "customer_id": customer_id,
+                        "product_id": product_name,
+                        "quantity": int(quantity),
+                        "date": date,
+                        "pending": pending.lower() == "true",
+                    }
+
+                self._orders[order_id] = order_data
 
     def load_all(self):
         self.read_products()

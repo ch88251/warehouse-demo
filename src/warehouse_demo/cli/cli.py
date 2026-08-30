@@ -117,10 +117,14 @@ class Cli:
                         )
                     except ValueError as error:
                         print(error, file=sys.stderr)
+                    except WarehouseException as error:
+                        print(error, file=sys.stderr)
                     except UnsupportedOperationError as error:
                         print(error, file=sys.stderr)
 
             except ValueError as error:
+                print(error, file=sys.stderr)
+            except WarehouseException as error:
                 print(error, file=sys.stderr)
             except UnsupportedOperationError as error:
                 print(error, file=sys.stderr)
@@ -203,9 +207,7 @@ class Cli:
         if sub_menu_choice == 1:
             self._do_product_list()
         elif sub_menu_choice == 2:
-            raise UnsupportedOperationError(
-                "Adding products not yet implemented."
-            )
+            self._do_product_add()
         elif sub_menu_choice == 3:
             raise UnsupportedOperationError(
                 "Updating products not yet implemented."
@@ -219,6 +221,23 @@ class Cli:
                 "There are only four product actions; "
                 "this cannot happen."
             )
+
+    def _do_product_add(self) -> None:
+        name = input("Enter product name and press RETURN: ").strip()
+        if not name:
+            raise ValueError("Product name cannot be empty.")
+
+        raw_price = input("Enter product price and press RETURN: ").strip()
+        try:
+            price = float(raw_price)
+        except ValueError:
+            raise ValueError("Invalid input. Enter a valid price.") from None
+
+        product = self._get_warehouse().add_product(
+            name,
+            price,
+        )
+        print(f"Added product {product.id}: {product.name} ({product.price})")
 
     def _do_customer_action(
         self,

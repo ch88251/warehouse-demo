@@ -1,4 +1,3 @@
-id|customer_id|date|product|quantity|pending
 1|1|2024-06-01|Milk|2|true
 2|2|2024-06-02|Bread|1|true
 3|3|2024-06-03|Eggs|12|true
