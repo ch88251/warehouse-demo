@@ -10,15 +10,15 @@ from .product import Product
 class Warehouse:
 
     def __init__(self):
+        self._products = {}
+        self._inventory = {}
+        self._customers = {}
+        self._orders = {}
+
         self.products_csv_file = "products.csv"
         self.inventory_csv_file = "inventory.csv"
         self.customers_csv_file = "customers.csv"
         self.orders_csv_file = "orders.csv"
-
-        self._products: dict[str, dict[str, float | str]] = {}
-        self._inventory: dict[str, int] = {}
-        self._customers: dict[str, dict[str, str]] = {}
-        self._orders: dict[str, dict[str, int | str]] = {}
 
     @property
     def products(self):
@@ -49,13 +49,32 @@ class Warehouse:
             for product_id, product_data in self._products.items()
         ]
 
+    def get_inventory(self) -> dict[str, int]:
+        if not self._inventory:
+            self.read_inventory()
+        return self._inventory
+
+    @staticmethod
+    def _create_csv_reader(input_stream) -> CsvReader:
+        sample = input_stream.read(1024)
+        input_stream.seek(0)
+
+        delimiter = ","
+        if sample:
+            try:
+                delimiter = csv.Sniffer().sniff(
+                    sample,
+                    delimiters=",|",
+                ).delimiter
+            except csv.Error:
+                pass
+
+        return CsvReader(input_stream, separator=delimiter)
+
     def read_products(self):
         self._products = {}
         with open(self.products_csv_file, "r") as f:
-            sample = f.read(1024)
-            f.seek(0)
-            dialect = csv.Sniffer().sniff(sample, delimiters=",|")
-            reader = CsvReader(f, separator=dialect.delimiter)
+            reader = self._create_csv_reader(f)
 
             while reader.has_next_row():
                 row = reader.next_row()
@@ -68,22 +87,40 @@ class Warehouse:
     def read_inventory(self):
         self._inventory = {}
         with open(self.inventory_csv_file, "r") as f:
-            for line in f:
-                product_id, quantity = line.strip().split(",")
+            reader = self._create_csv_reader(f)
+
+            while reader.has_next_row():
+                row = reader.next_row()
+                if not row:
+                    continue
+
+                product_id, quantity = row
                 self._inventory[product_id] = int(quantity)
 
     def read_customers(self):
         self._customers = {}
         with open(self.customers_csv_file, "r") as f:
-            for line in f:
-                customer_id, name, email = line.strip().split(",")
+            reader = self._create_csv_reader(f)
+
+            while reader.has_next_row():
+                row = reader.next_row()
+                if not row:
+                    continue
+
+                customer_id, name, email = row
                 self._customers[customer_id] = {"name": name, "email": email}
 
     def read_orders(self):
         self._orders = {}
         with open(self.orders_csv_file, "r") as f:
-            for line in f:
-                order_id, customer_id, product_id, quantity = line.strip().split(",")
+            reader = self._create_csv_reader(f)
+
+            while reader.has_next_row():
+                row = reader.next_row()
+                if not row:
+                    continue
+
+                order_id, customer_id, product_id, quantity = row
                 self._orders[order_id] = {
                     "customer_id": customer_id,
                     "product_id": product_id,

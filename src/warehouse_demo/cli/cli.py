@@ -76,6 +76,7 @@ class Cli:
     def run(self) -> None:
         try:
             self._warehouse = Warehouse()
+            self._warehouse.load_all()
         except FileNotFoundError as error:
             print(
                 "Please ensure the required CSV files are present: "
